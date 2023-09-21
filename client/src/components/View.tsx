@@ -2,10 +2,10 @@ import { FC } from "react";
 
 interface IView {
   loading: boolean;
-  pinnedCIDs: string[];
+  protocolLinks: string[];
 }
 
-const View: FC<IView> = ({ loading, pinnedCIDs }) => {
+const View: FC<IView> = ({ loading, protocolLinks }) => {
   return (
     <div className="bg-white rounded p-6 shadow mt-4">
       <h2 className="bg-blue-100 py-3 px-6 mb-4 rounded text-gray-600 text-lg font-bold shadow">
@@ -24,10 +24,13 @@ const View: FC<IView> = ({ loading, pinnedCIDs }) => {
         </div>
       )}
       <div>
-        {pinnedCIDs.map((cid, i) => (
-          <div className="bg-gray-50 py-1 px-2 my-4 rounded text-gray-600 text-xs font-light shadow cursor-pointer hover:text-blue-600">
-            <a href={`${process.env.REACT_APP_SPHERON_GATEWAY}/${cid}`}>
-              {i + 1}. {process.env.REACT_APP_SPHERON_GATEWAY}/{cid}
+        {protocolLinks.map((link, i) => (
+          <div
+            key={i}
+            className="bg-gray-50 py-1 px-2 my-4 rounded text-gray-600 text-xs font-light shadow cursor-pointer hover:text-blue-600"
+          >
+            <a href={link}>
+              {i + 1}. {link}
             </a>
           </div>
         ))}
