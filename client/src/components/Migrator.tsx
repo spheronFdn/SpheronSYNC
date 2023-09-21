@@ -3,7 +3,7 @@ import Card from "./Card";
 import View from "./View";
 
 const Migrator: FC = () => {
-  const [pinnedCIDs, setPinnedCIDs] = useState<string[]>([]);
+  const [protocolLinks, setProtocolLinks] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [endpoint, setEndpoint] = useState<string>(
     "https://api.pinata.cloud/data/pinList"
@@ -13,9 +13,9 @@ const Migrator: FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    const cidArray = localStorage.getItem("pinnedArray") || "";
-    const parsedArray = cidArray ? JSON.parse(cidArray) : [];
-    setPinnedCIDs([...parsedArray]);
+    const cidLinksArray = localStorage.getItem("cidLinks") || "";
+    const parsedLinksArray = cidLinksArray ? JSON.parse(cidLinksArray) : [];
+    setProtocolLinks([...parsedLinksArray]);
     setLoading(false);
   }, []);
 
@@ -47,26 +47,37 @@ const Migrator: FC = () => {
 
   const handlePin = async (cid: string) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_ADDRESS}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cid,
-        }),
-      });
+      const response: any = await fetch(
+        `${process.env.REACT_APP_BACKEND_ADDRESS}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            cid,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const cidArray = localStorage.getItem("pinnedArray") || "";
-      const parsedArray = cidArray ? JSON.parse(cidArray) : [];
-      setPinnedCIDs([...parsedArray, cid]);
-      const stringifiedArray = JSON.stringify([...parsedArray, cid]);
-      localStorage.setItem("pinnedArray", stringifiedArray);
+      const data = await response.json();
+
+      const cidLinksArray = localStorage.getItem("cidLinks") || "";
+      const parsedLinksArray = cidLinksArray ? JSON.parse(cidLinksArray) : [];
+
+      setProtocolLinks([...parsedLinksArray, data.pinRes.protocolLink]);
+
+      const stringifiedArray = JSON.stringify([
+        ...parsedLinksArray,
+        data.pinRes.protocolLink,
+      ]);
+      localStorage.setItem("cidLinks", stringifiedArray);
+
       setLoading(false);
     } catch (error) {
       console.error("Error:", error);
@@ -117,7 +128,7 @@ const Migrator: FC = () => {
           </svg>
         </button>
       </div>
-      <View loading={loading} pinnedCIDs={pinnedCIDs} />
+      <View loading={loading} protocolLinks={protocolLinks} />
     </section>
   );
 };

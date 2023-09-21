@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
-const { SpheronClient } = require("@spheron/storage");
+const { SpheronClient, ipfs } = require("@spheron/storage");
 
 dotenv.config();
 
@@ -20,6 +20,7 @@ app.post("/pin-cid", async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const name = "ipfs-migrator";
     const { cid } = req.body;
+    const v1 = ipfs.utils.toV1(cid);
 
     const client = new SpheronClient({
       token,
@@ -29,7 +30,8 @@ app.post("/pin-cid", async (req, res, next) => {
 
     const pinRes = await client.pinCID({
       name,
-      cid,
+      cid: v1,
+      inBackground: true,
     });
 
     res.status(200).json({
