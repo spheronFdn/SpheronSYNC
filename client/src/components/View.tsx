@@ -3,9 +3,10 @@ import { FC } from "react";
 interface IView {
   loading: boolean;
   protocolLinks: string[];
+  error?: boolean;
 }
 
-const View: FC<IView> = ({ loading, protocolLinks }) => {
+const View: FC<IView> = ({ loading, protocolLinks, error }) => {
   return (
     <div className="bg-white rounded p-6 shadow mt-4">
       <h2 className="bg-blue-100 py-3 px-6 mb-4 rounded text-gray-600 text-lg font-bold shadow">
@@ -20,6 +21,13 @@ const View: FC<IView> = ({ loading, protocolLinks }) => {
 
           <h3 className="text-gray-600 font-semibold text-center">
             Pinning CIDs...
+          </h3>
+        </div>
+      )}
+      {error && (
+        <div className="h-[40vh] flex flex-col items-center justify-center">
+          <h3 className="text-gray-600 font-semibold text-center">
+            Oops! Something went wrong. Please try again later.
           </h3>
         </div>
       )}

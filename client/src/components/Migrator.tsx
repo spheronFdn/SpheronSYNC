@@ -5,6 +5,7 @@ import View from "./View";
 const Migrator: FC = () => {
   const [protocolLinks, setProtocolLinks] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
   const [endpoint, setEndpoint] = useState<string>(
     "https://api.pinata.cloud/data/pinList"
   );
@@ -20,6 +21,7 @@ const Migrator: FC = () => {
   }, []);
 
   const handleSubmit = async () => {
+    setError(false);
     setLoading(true);
     try {
       const response = await fetch(`${endpoint}`, {
@@ -42,6 +44,8 @@ const Migrator: FC = () => {
       );
     } catch (error) {
       console.error("Error:", error);
+      setLoading(false);
+      setError(true);
     }
   };
 
@@ -82,6 +86,7 @@ const Migrator: FC = () => {
     } catch (error) {
       console.error("Error:", error);
       setLoading(false);
+      setError(true);
     }
   };
 
@@ -114,8 +119,13 @@ const Migrator: FC = () => {
           </section>
         </section>
         <button
-          className="absolute top-1/3 mt-2 bg-orange-400 py-2 px-10 rounded text-white font-semibold flex gap-2 items-center"
+          className={`absolute top-1/3 mt-2 bg-orange-400 py-2 px-10 rounded text-white font-semibold flex gap-2 items-center ${
+            endpoint && token && accessToken
+              ? "cursor-pointer"
+              : "cursor-not-allowed"
+          }`}
           onClick={handleSubmit}
+          disabled={!endpoint || !token || !accessToken}
         >
           SYNC{" "}
           <svg
@@ -128,7 +138,7 @@ const Migrator: FC = () => {
           </svg>
         </button>
       </div>
-      <View loading={loading} protocolLinks={protocolLinks} />
+      <View loading={loading} protocolLinks={protocolLinks} error={error} />
     </section>
   );
 };
