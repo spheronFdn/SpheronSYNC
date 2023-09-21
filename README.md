@@ -23,7 +23,6 @@ You can follow these steps to setup the client:
 4. Run `yarn` to install dependencies
 5. Create a `.env` file in the client directory and Add the following:
   ```
-  REACT_APP_SPHERON_GATEWAY=xxxx
   REACT_APP_BACKEND_ADDRESS=xxxx
   # for local setup use http://localhost:8111/
   ```
