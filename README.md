@@ -1,6 +1,6 @@
 # SpheronSYNC
 
-SpheronSYNC is tool built specifically to facilitate the seamless migration of your data from one IPFS provider to Spheron without the need for complex configurations.
+SpheronSYNC is a tool built specifically to facilitate the seamless migration of your data from one IPFS provider to Spheron without the need for complex configurations.
 
 ## Description
 SpheronSYNC aims to simplify the data migration process from one IPFS pinning service to Spheron. Without this tool, users would need to manually configure and manage the migration, a task that can be error-prone and time-consuming. Users can initiate the migration process with just a few clicks, eliminating the need for deep knowledge of IPFS configurations or infrastructure management.
