@@ -1,131 +1,97 @@
-import { FC, useEffect, useState } from "react";
-import Card from "./Card";
+import { FC, useState } from "react";
+import SourceCard from "./SourceCard";
 import View from "./View";
+import DestinationCard from "./DestinationCard";
+import { getBucketUploads, getUpload, modifyArray, pinCID } from "../utils";
 
 const Migrator: FC = () => {
-  const [protocolLinks, setProtocolLinks] = useState<string[]>([]);
+  const [uploadArray, setUploadArray] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
-  const [endpoint, setEndpoint] = useState<string>(
-    "https://api.pinata.cloud/data/pinList"
-  );
+  const [provider, setProvider] = useState<string>("web3storage");
   const [token, setToken] = useState<string>("");
   const [accessToken, setAccessToken] = useState<string>("");
-
-  useEffect(() => {
-    setLoading(true);
-    const cidLinksArray = localStorage.getItem("cidLinks") || "";
-    const parsedLinksArray = cidLinksArray ? JSON.parse(cidLinksArray) : [];
-    setProtocolLinks([...parsedLinksArray]);
-    setLoading(false);
-  }, []);
+  const [bucketName, setBucketName] = useState<string>("");
+  const [bucketId, setBucketId] = useState<string>("");
 
   const handleSubmit = async () => {
-    setError(false);
     setLoading(true);
-    try {
-      const response = await fetch(`${endpoint}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json;",
-        },
-      });
+    const response: any = await pinCID(
+      accessToken,
+      bucketName,
+      provider,
+      token
+    );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      await Promise.all(
-        data.rows.map(async (file: any) => {
-          await handlePin(file.ipfs_pin_hash);
-        })
-      );
-    } catch (error) {
-      console.error("Error:", error);
-      setLoading(false);
+    if (response.error) {
       setError(true);
+    } else {
+      setUploadArray(response);
     }
+
+    setLoading(false);
   };
 
-  const handlePin = async (cid: string) => {
-    try {
-      const response: any = await fetch(
-        `${process.env.REACT_APP_BACKEND_ADDRESS}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            cid,
-          }),
-        }
-      );
+  const handleItemClick = async (uploadId: string) => {
+    setLoading(true);
+    const response: any = await getUpload(accessToken, uploadId);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const cidLinksArray = localStorage.getItem("cidLinks") || "";
-      const parsedLinksArray = cidLinksArray ? JSON.parse(cidLinksArray) : [];
-
-      setProtocolLinks([...parsedLinksArray, data.pinRes.protocolLink]);
-
-      const stringifiedArray = JSON.stringify([
-        ...parsedLinksArray,
-        data.pinRes.protocolLink,
-      ]);
-      localStorage.setItem("cidLinks", stringifiedArray);
-
-      setLoading(false);
-    } catch (error) {
-      console.error("Error:", error);
-      setLoading(false);
+    if (response.error) {
       setError(true);
+    } else {
+      if (response.status === "Pinned") {
+        const updatedArray = modifyArray(uploadArray, uploadId, response, true);
+        setUploadArray(updatedArray);
+      } else {
+        const updatedArray = modifyArray(
+          uploadArray,
+          uploadId,
+          response,
+          false
+        );
+        setUploadArray(updatedArray);
+      }
     }
+
+    setLoading(false);
+  };
+
+  const handleFetchBucketUploads = async (bucketId: string) => {
+    setLoading(true);
+    const response: any = await getBucketUploads(accessToken, bucketId);
+
+    if (response.error) {
+      setError(true);
+    } else {
+      setUploadArray(response);
+    }
+
+    setLoading(false);
   };
 
   return (
     <section className="px-16 py-10">
       <div className="bg-white flex gap-8 justify-center rounded p-6 shadow">
-        <Card
-          endpoint={endpoint}
-          setEndpoint={setEndpoint}
+        <SourceCard
+          provider={provider}
+          setProvider={setProvider}
           token={token}
           setToken={setToken}
         />
-        <section className="w-1/2">
-          <section className="h-full border-4 border-dashed border-gray-200 px-10 py-2 rounded">
-            <h2 className="bg-blue-100 py-3 px-6 my-4 rounded text-gray-600 text-lg font-bold shadow">
-              Destination Provider
-            </h2>
-            <div className="shadow py-6 px-12 mb-6">
-              <div className="mb-8">
-                <label className="text-sm">Spheron Access Token</label>
-                <input
-                  className="h-full w-full border border-gray-200 rounded py-2 px-4"
-                  type="password"
-                  placeholder="spheron access token"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                />
-              </div>
-            </div>
-          </section>
-        </section>
+        <DestinationCard
+          bucketName={bucketName}
+          setBucketName={setBucketName}
+          accessToken={accessToken}
+          setAccessToken={setAccessToken}
+        />
         <button
           className={`absolute top-1/3 mt-2 bg-orange-400 py-2 px-10 rounded text-white font-semibold flex gap-2 items-center ${
-            endpoint && token && accessToken
+            provider && token && accessToken
               ? "cursor-pointer"
               : "cursor-not-allowed"
           }`}
           onClick={handleSubmit}
-          disabled={!endpoint || !token || !accessToken}
+          disabled={!provider || !token || !accessToken}
         >
           SYNC{" "}
           <svg
@@ -138,7 +104,17 @@ const Migrator: FC = () => {
           </svg>
         </button>
       </div>
-      <View loading={loading} protocolLinks={protocolLinks} error={error} />
+      <View
+        loading={loading}
+        uploadArray={uploadArray}
+        error={error}
+        handleItemClick={handleItemClick}
+        bucketId={bucketId}
+        setBucketId={setBucketId}
+        handleFetchBucketUploads={handleFetchBucketUploads}
+        accessToken={accessToken}
+        setAccessToken={setAccessToken}
+      />
     </section>
   );
 };
