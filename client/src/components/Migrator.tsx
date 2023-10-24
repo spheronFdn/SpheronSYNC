@@ -14,8 +14,6 @@ const Migrator: FC = () => {
   const [bucketName, setBucketName] = useState<string>("");
   const [bucketId, setBucketId] = useState<string>("");
 
-  console.log(provider);
-
   const handleSubmit = async () => {
     setLoading(true);
     const response: any = await pinCID(
