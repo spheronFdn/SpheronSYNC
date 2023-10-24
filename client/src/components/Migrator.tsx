@@ -86,12 +86,12 @@ const Migrator: FC = () => {
         />
         <button
           className={`absolute top-1/3 mt-2 bg-orange-400 py-2 px-10 rounded text-white font-semibold flex gap-2 items-center ${
-            provider && token && accessToken
+            provider && token && accessToken && bucketName
               ? "cursor-pointer"
               : "cursor-not-allowed"
           }`}
           onClick={handleSubmit}
-          disabled={!provider || !token || !accessToken}
+          disabled={!provider || !token || !accessToken || !bucketName}
         >
           SYNC{" "}
           <svg
